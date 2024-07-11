@@ -1,4 +1,8 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -19,9 +23,22 @@ public class Main {
       serverSocket.setReuseAddress(true);
       clientSocket = serverSocket.accept(); // Wait for connection from client.
 
-      clientSocket.getOutputStream().write(
-        "HTTP/1.1 200 OK\r\n\r\n".getBytes()
-      );
+      InputStream inputStream = clientSocket.getInputStream();
+
+      BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+      String line = reader.readLine();
+      System.out.println(line);
+
+      String[] request = line.split(" ", 0);
+      System.out.println(request.toString());
+      OutputStream output = clientSocket.getOutputStream();
+
+      if (request[1].equals("/")) {
+        output.write("HTTP/1.1 200 OK\r\n\r\n".getBytes());
+      } else {
+        output.write("HTTP/1.1 404 Not Found\r\n\r\n".getBytes());
+      }
+
       System.out.println("accepted new connection");
     } catch (IOException e) {
       System.out.println("IOException: " + e.getMessage());
