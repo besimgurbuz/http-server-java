@@ -9,13 +9,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
-  public static Map<String, String> parseHeaders(String rawHeaders) {
+  public static Map<String, String> parseHeaders(BufferedReader reader) throws IOException {
     Map<String, String> headers = new HashMap<>();
-    String[] lines = rawHeaders.split("\r\n");
-    for (String line : lines) {
-      String[] header = line.split(": ", 2);
-      headers.put(header[0], header[1]);
+    String headerLine = reader.readLine();
+    while (!headerLine.isEmpty() && headerLine != null) {
+      System.out.println(headerLine);
+      String[] headerSplit = headerLine.split(": ");
+      headers.put(headerSplit[0], headerSplit[1]);
+      headerLine = reader.readLine();
     }
+
     return headers;
   }
 
@@ -38,26 +41,29 @@ public class Main {
       InputStream inputStream = clientSocket.getInputStream();
 
       BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-      String line = reader.readLine();
-      System.out.println(line);
-
-      String[] request = line.split(" ", 0);
+      String requestLine = reader.readLine();
+      String[] request = requestLine.split(" ", 0);
       String route = request[1];
-      Map<String, String> headers = parseHeaders(request[2]);
-      System.out.println("headers: " + headers);
+      Map<String, String> headers = parseHeaders(reader);
+
       OutputStream output = clientSocket.getOutputStream();
 
       if (route.equals("/")) {
         output.write("HTTP/1.1 200 OK\r\n\r\n".getBytes());
       } else if (route.startsWith("/echo")) {
         String responseBody = route.substring(route.lastIndexOf('/') + 1);
-        System.out.println("responseBody: " + responseBody);
         String response = String.format("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", responseBody.length(), responseBody);
+
+        output.write(response.getBytes());
+      } else if (route.equals("/user-agent")) {
+        System.out.println("Headers: " + headers);
+        String userAgent = headers.get("User-Agent");
+        String response = String.format("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", userAgent.length(), userAgent);
+
         output.write(response.getBytes());
       } else {
         output.write("HTTP/1.1 404 Not Found\r\n\r\n".getBytes());
       }
-
       System.out.println("accepted new connection");
     } catch (IOException e) {
       System.out.println("IOException: " + e.getMessage());
