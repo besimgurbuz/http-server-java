@@ -5,8 +5,20 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main {
+  public static Map<String, String> parseHeaders(String rawHeaders) {
+    Map<String, String> headers = new HashMap<>();
+    String[] lines = rawHeaders.split("\r\n");
+    for (String line : lines) {
+      String[] header = line.split(": ", 2);
+      headers.put(header[0], header[1]);
+    }
+    return headers;
+  }
+
   public static void main(String[] args) {
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     System.out.println("Logs from your program will appear here!");
@@ -31,6 +43,8 @@ public class Main {
 
       String[] request = line.split(" ", 0);
       String route = request[1];
+      Map<String, String> headers = parseHeaders(request[2]);
+      System.out.println("headers: " + headers);
       OutputStream output = clientSocket.getOutputStream();
 
       if (route.equals("/")) {
