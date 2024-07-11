@@ -4,6 +4,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,6 +33,14 @@ public class HttpServer {
     }
   }
 
+  private byte[] readFile(String path) {
+    try {
+      return Files.readAllBytes(Paths.get(path));
+    } catch (IOException e) {
+      return null;
+    }
+  }
+
   private void handleRequest(Socket clientSocket) {
     try (final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
          final OutputStream outputStream = clientSocket.getOutputStream()) {
@@ -52,8 +62,27 @@ public class HttpServer {
         response = new HttpResponse.Builder()
           .status(StatusCode.OK)
           .contentType("text/plain")
-          .body(request.getRoute().substring(request.getRoute().lastIndexOf('/') + 1))
+          .body(request.getRouteParts()[2])
           .build();
+      } else if (request.getRoute().startsWith("/files")) {
+        byte[] file = null;
+
+        if (request.getRouteParts().length >= 3) {
+          String path = String.format("./tmp/%s", request.getRouteParts()[2]);
+          file = readFile(path);
+        }
+
+        if (file != null) {
+          response = new HttpResponse.Builder()
+            .status(StatusCode.OK)
+            .contentType("application/octet-stream")
+            .body(new String(file))
+            .build();
+        } else {
+          response = new HttpResponse.Builder()
+            .status(StatusCode.NOT_FOUND)
+            .build();
+        }
       } else {
         response = new HttpResponse.Builder()
           .status(StatusCode.NOT_FOUND)

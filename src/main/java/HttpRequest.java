@@ -27,6 +27,10 @@ public class HttpRequest {
     return route;
   }
 
+  public String[] getRouteParts() {
+    return route.split("/");
+  }
+
   public String getVersion() {
     return version;
   }
