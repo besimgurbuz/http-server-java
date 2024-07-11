@@ -30,11 +30,14 @@ public class Main {
       System.out.println(line);
 
       String[] request = line.split(" ", 0);
-      System.out.println(request.toString());
+      String route = request[1];
       OutputStream output = clientSocket.getOutputStream();
 
-      if (request[1].equals("/")) {
-        output.write("HTTP/1.1 200 OK\r\n\r\n".getBytes());
+      if (route.equals("/echo/")) {
+        String responseBody = route.substring(route.lastIndexOf('/'));
+        System.out.println("responseBody: " + responseBody);
+        String response = String.format("HTTP/1.1 200 Ok\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", responseBody.length(), responseBody);
+        output.write(response.getBytes());
       } else {
         output.write("HTTP/1.1 404 Not Found\r\n\r\n".getBytes());
       }
