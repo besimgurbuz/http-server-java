@@ -12,10 +12,12 @@ import java.util.concurrent.Executors;
 public class HttpServer {
   private final int port;
   private final ExecutorService executorService;
+  private final String directory;
 
-  public HttpServer(int port, final int threadPoolSize) {
+  public HttpServer(int port, final int threadPoolSize, String directory) {
     this.port = port;
     this.executorService = Executors.newFixedThreadPool(threadPoolSize);
+    this.directory = directory;
   }
 
   public void run() {
@@ -35,7 +37,7 @@ public class HttpServer {
 
   private byte[] readFile(String path) {
     try {
-      return Files.readAllBytes(Paths.get(path));
+      return Files.readAllBytes(Paths.get(String.format("%s%s", this.directory, path)));
     } catch (IOException e) {
       return null;
     }
@@ -68,8 +70,7 @@ public class HttpServer {
         byte[] file = null;
 
         if (request.getRouteParts().length >= 3) {
-          String path = String.format("./tmp/%s", request.getRouteParts()[2]);
-          file = readFile(path);
+          file = readFile(request.getRouteParts()[2]);
         }
 
         if (file != null) {
