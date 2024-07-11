@@ -43,6 +43,15 @@ public class HttpServer {
     }
   }
 
+  private int writeFile(String name, byte[] content) {
+    try {
+      Files.write(Paths.get(String.format("%s%s", this.directory, name)), content);
+      return 0;
+    } catch (IOException e) {
+      return 1;
+    }
+  }
+
   private void handleRequest(Socket clientSocket) {
     try (final BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
          final OutputStream outputStream = clientSocket.getOutputStream()) {
@@ -66,7 +75,7 @@ public class HttpServer {
           .contentType("text/plain")
           .body(request.getRouteParts()[2])
           .build();
-      } else if (request.getRoute().startsWith("/files")) {
+      } else if (request.getRoute().startsWith("/files") && request.getMethod().equals("GET")) {
         byte[] file = null;
 
         if (request.getRouteParts().length >= 3) {
@@ -84,6 +93,23 @@ public class HttpServer {
             .status(StatusCode.NOT_FOUND)
             .build();
         }
+      } else if (request.getRoute().startsWith("/files") && request.getMethod().equals("POST")) {
+        int result = 1;
+
+        if (request.getRouteParts().length >= 3) {
+          result = writeFile(request.getRouteParts()[2], request.getBody().getBytes());
+        }
+
+        if (result == 0) {
+          response = new HttpResponse.Builder()
+            .status(StatusCode.CREATED)
+            .build();
+        } else {
+          response = new HttpResponse.Builder()
+            .status(StatusCode.NOT_FOUND)
+            .build();
+        }
+
       } else {
         response = new HttpResponse.Builder()
           .status(StatusCode.NOT_FOUND)
