@@ -33,10 +33,12 @@ public class Main {
       String route = request[1];
       OutputStream output = clientSocket.getOutputStream();
 
-      if (route.equals("/echo/")) {
-        String responseBody = route.substring(route.lastIndexOf('/'));
+      if (route.equals("/")) {
+        output.write("HTTP/1.1 200 OK\r\n\r\n".getBytes());
+      } else if (route.startsWith("/echo")) {
+        String responseBody = route.substring(route.lastIndexOf('/') + 1);
         System.out.println("responseBody: " + responseBody);
-        String response = String.format("HTTP/1.1 200 Ok\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", responseBody.length(), responseBody);
+        String response = String.format("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: %d\r\n\r\n%s", responseBody.length(), responseBody);
         output.write(response.getBytes());
       } else {
         output.write("HTTP/1.1 404 Not Found\r\n\r\n".getBytes());
