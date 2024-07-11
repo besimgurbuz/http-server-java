@@ -39,8 +39,28 @@ public class HttpRequest {
     return headers;
   }
 
+  public String[] getAcceptEncodings() {
+    return headers.getOrDefault("Accept-Encoding", "").split(", ");
+  }
+
   public String getBody() {
     return body;
+  }
+
+  public boolean hasHeader(String header) {
+    return headers.containsKey(header);
+  }
+
+  public boolean hasBody() {
+    return !body.isEmpty();
+  }
+
+  public boolean isGet() {
+    return method.equals("GET");
+  }
+
+  public boolean isPost() {
+    return method.equals("POST");
   }
 
   public static HttpRequest from(BufferedReader bufferedReader) throws IOException {

@@ -85,10 +85,18 @@ public class HttpResponse {
             return this;
         }
 
-        public Builder body(String body) {
+        public Builder body(String body, String[] encodings) {
+          ContentCompressor compressor = CompressorFactory.getCompressor(encodings);
+
+          if (compressor != null) {
+            this.body = compressor.compress(body.getBytes()).toString();
+            this.headers.put("Content-Encoding", compressor.getEncoding());
+          } else {
             this.body = body;
-            this.headers.put("Content-Length", String.valueOf(body.length()));
-            return this;
+          }
+
+          this.headers.put("Content-Length", String.valueOf(body.length()));
+          return this;
         }
 
         public HttpResponse build() {

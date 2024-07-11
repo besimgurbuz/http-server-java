@@ -67,15 +67,15 @@ public class HttpServer {
         response = new HttpResponse.Builder()
           .status(StatusCode.OK)
           .contentType("text/plain")
-          .body(request.getHeaders().get("User-Agent"))
+          .body(request.getHeaders().get("User-Agent"), request.getAcceptEncodings())
           .build();
       } else if (request.getRoute().startsWith("/echo")) {
         response = new HttpResponse.Builder()
           .status(StatusCode.OK)
           .contentType("text/plain")
-          .body(request.getRouteParts()[2])
+          .body(request.getRouteParts()[2], request.getAcceptEncodings())
           .build();
-      } else if (request.getRoute().startsWith("/files") && request.getMethod().equals("GET")) {
+      } else if (request.getRoute().startsWith("/files") && request.isGet()) {
         byte[] file = null;
 
         if (request.getRouteParts().length >= 3) {
@@ -86,14 +86,14 @@ public class HttpServer {
           response = new HttpResponse.Builder()
             .status(StatusCode.OK)
             .contentType("application/octet-stream")
-            .body(new String(file))
+            .body(new String(file), request.getAcceptEncodings())
             .build();
         } else {
           response = new HttpResponse.Builder()
             .status(StatusCode.NOT_FOUND)
             .build();
         }
-      } else if (request.getRoute().startsWith("/files") && request.getMethod().equals("POST")) {
+      } else if (request.getRoute().startsWith("/files") && request.isPost()) {
         int result = 1;
 
         if (request.getRouteParts().length >= 3) {
